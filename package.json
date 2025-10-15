@@ -11,7 +11,10 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@ignite-ui/react": "^2.2.4",
+    "@prisma/client": "^6.17.1",
+    "@prisma/extension-accelerate": "^2.0.2",
     "@stitches/react": "^1.2.8",
+    "axios": "^1.12.2",
     "lucide-react": "^0.545.0",
     "next": "15.5.4",
     "react": "19.1.0",
@@ -27,7 +30,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
+    "prisma": "^6.17.0",
     "tailwindcss": "^4",
+    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }
