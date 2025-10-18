@@ -7,7 +7,7 @@ import { SessionProvider } from "next-auth/react";
 import Head from "next/head";
 import { Providers } from "./providers";
 import { getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]/route";
+import { buildNextAuthOptions } from "./api/auth/[...nextauth]/route";
 
 const robotoSans = Roboto({
   variable: "--font-roboto-sans",
@@ -29,8 +29,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getServerSession(authOptions);
-
   return (
     <html lang="pt-BR">
       <Head>
@@ -40,7 +38,7 @@ export default async function RootLayout({
         className={`${robotoSans.variable} ${robotoMono.variable} antialiased`}
       >
         <GlobalStyles />
-        <Providers session={session}>{children}</Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
