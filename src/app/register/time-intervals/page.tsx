@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import {
@@ -15,10 +16,100 @@ import {
   IntervalDay,
   IntervalInputs,
   IntervalItem,
+  FormError,
 } from "./style";
 import { ArrowRight } from "lucide-react";
+import z from "zod";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { getWeekDays } from "@/utils/get-week-days";
+import { convertTimeStringToMinutes } from "@/utils/src/utils/convert-time-string-to-minutes";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { showToast } from "nextjs-toast-notify";
+
+const timeIntervalsFormSchema = z.object({
+  intervals: z
+    .array(
+      z.object({
+        weekDay: z.number().min(0).max(6),
+        enabled: z.boolean(),
+        startTime: z.string(),
+        endTime: z.string(),
+      })
+    )
+    .length(7)
+    .transform((intervals) => intervals.filter((interval) => interval.enabled))
+    .refine((intervals) => intervals.length > 0, {
+      message: "Você precisa selecionar pelo menos um dia da semana.",
+    }),
+});
+
+type TimeIntervalsFormSchema = z.input<typeof timeIntervalsFormSchema>;
 
 export default function Register() {
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<TimeIntervalsFormSchema>({
+    resolver: zodResolver(timeIntervalsFormSchema),
+    defaultValues: {
+      intervals: [
+        { weekDay: 0, enabled: false, startTime: "08:00", endTime: "18:00" },
+        { weekDay: 1, enabled: true, startTime: "08:00", endTime: "18:00" },
+        { weekDay: 2, enabled: true, startTime: "08:00", endTime: "18:00" },
+        { weekDay: 3, enabled: true, startTime: "08:00", endTime: "18:00" },
+        { weekDay: 4, enabled: true, startTime: "08:00", endTime: "18:00" },
+        { weekDay: 5, enabled: true, startTime: "08:00", endTime: "18:00" },
+        { weekDay: 6, enabled: false, startTime: "08:00", endTime: "18:00" },
+      ],
+    },
+  });
+
+  const weekDays = getWeekDays();
+
+  const { fields } = useFieldArray({
+    control,
+    name: "intervals",
+  });
+
+  const intervals = watch("intervals");
+
+  async function handleSetTimeIntervals(data: TimeIntervalsFormSchema) {
+    const intervals = data.intervals
+      .filter((i) => i.enabled)
+      .map((i) => ({
+        weekDay: i.weekDay,
+        startTimeInMinutes: convertTimeStringToMinutes(i.startTime),
+        endTimeInMinutes: convertTimeStringToMinutes(i.endTime),
+      }));
+
+    // Validação de regra de negócio: fim deve ser pelo menos 1h após início
+    const isInvalid = intervals.some(
+      (interval) => interval.endTimeInMinutes - 60 < interval.startTimeInMinutes
+    );
+
+    if (isInvalid) {
+      // Tratamento da falha (pode ser toast, formError, modal, etc)
+      showToast.error(
+        "O horário de término deve ser pelo menos 1h distante do início.",
+        {
+          duration: 4000,
+          progress: true,
+          position: "bottom-center",
+          transition: "popUp",
+          icon: "",
+          sound: true,
+        }
+      );
+      return;
+    }
+
+    // Se passou, prossiga normalmente
+    console.log("Horários válidos:", intervals);
+  }
+
   return (
     <Container>
       <Header>
@@ -31,43 +122,52 @@ export default function Register() {
         <MultiStep size={4} currentStep={3} />
       </Header>
 
-      <IntervalBox as="form">
+      <IntervalBox as="form" onSubmit={handleSubmit(handleSetTimeIntervals)}>
         <IntervalsContainer>
-          <IntervalItem>
-            <IntervalDay>
-              <Checkbox />
-              <Text>Segunda-feira</Text>
-            </IntervalDay>
-            <IntervalInputs>
-              <TextInput size="sm" type="time" step={45} />
-              <TextInput size="sm" type="time" step={45} />
-            </IntervalInputs>
-          </IntervalItem>
-
-          <IntervalItem>
-            <IntervalDay>
-              <Checkbox />
-              <Text>Terça-feira</Text>
-            </IntervalDay>
-            <IntervalInputs>
-              <TextInput size="sm" type="time" step={45} />
-              <TextInput size="sm" type="time" step={45} />
-            </IntervalInputs>
-          </IntervalItem>
-
-          <IntervalItem>
-            <IntervalDay>
-              <Checkbox />
-              <Text>Quarta-feira</Text>
-            </IntervalDay>
-            <IntervalInputs>
-              <TextInput size="sm" type="time" step={45} />
-              <TextInput size="sm" type="time" step={45} />
-            </IntervalInputs>
-          </IntervalItem>
+          {fields.map((field, index) => {
+            return (
+              <IntervalItem key={field.id}>
+                <IntervalDay>
+                  <Controller
+                    name={`intervals.${index}.enabled`}
+                    control={control}
+                    render={({ field }) => {
+                      return (
+                        <Checkbox
+                          onCheckedChange={(checked) =>
+                            field.onChange(checked === true)
+                          }
+                          checked={field.value}
+                        />
+                      );
+                    }}
+                  />
+                  <Text>{weekDays[field.weekDay]}</Text>
+                </IntervalDay>
+                <IntervalInputs>
+                  <TextInput
+                    size="sm"
+                    type="time"
+                    step={60}
+                    disabled={intervals[index].enabled === false}
+                    {...register(`intervals.${index}.startTime`)}
+                  />
+                  <TextInput
+                    size="sm"
+                    type="time"
+                    step={60}
+                    disabled={intervals[index].enabled === false}
+                    {...register(`intervals.${index}.endTime`)}
+                  />
+                </IntervalInputs>
+              </IntervalItem>
+            );
+          })}
         </IntervalsContainer>
 
-        <Button type="submit">
+        {errors.intervals && <FormError>{errors.intervals.message}</FormError>}
+
+        <Button type="submit" disabled={isSubmitting}>
           Próximo passo
           <ArrowRight />
         </Button>
