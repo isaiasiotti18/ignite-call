@@ -4,8 +4,8 @@ import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider, { GoogleProfile } from "next-auth/providers/google";
 
 export function buildNextAuthOptions(
-  req: NextApiRequest,
-  res: NextApiResponse
+  req?: NextApiRequest,
+  res?: NextApiResponse
 ): NextAuthOptions {
   return {
     secret: process.env.NEXTAUTH_SECRET ?? "",

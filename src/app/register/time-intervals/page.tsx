@@ -25,6 +25,7 @@ import { getWeekDays } from "@/utils/get-week-days";
 import { convertTimeStringToMinutes } from "@/utils/src/utils/convert-time-string-to-minutes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { showToast } from "nextjs-toast-notify";
+import { api } from "@/lib/axios";
 
 const timeIntervalsFormSchema = z.object({
   intervals: z
@@ -106,14 +107,15 @@ export default function Register() {
       return;
     }
 
-    // Se passou, prossiga normalmente
-    console.log("Horários válidos:", intervals);
+    await api.post("/users/time-intervals", {
+      intervals,
+    });
   }
 
   return (
     <Container>
       <Header>
-        <Heading as="strong">Quase lá</Heading>
+        <Heading as="strong">Defina sua disponibilidade</Heading>
         <Text>
           Defina o intervalo de horários que você está disponível em cada dia da
           semana.
