@@ -9,7 +9,7 @@ export function buildNextAuthOptions(
 ): NextAuthOptions {
   return {
     secret: process.env.NEXTAUTH_SECRET ?? "",
-    adapter: PrismaAdapter(req, res),
+    adapter: PrismaAdapter(),
     providers: [
       GoogleProvider({
         clientId: process.env.GOOGLE_CLIENT_ID ?? "",

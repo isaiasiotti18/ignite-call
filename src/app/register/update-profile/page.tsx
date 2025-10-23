@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import {
+  Avatar,
   Button,
   Heading,
   MultiStep,
   Text,
   TextArea,
-  TextInput,
 } from "@ignite-ui/react";
 import { Container, Header } from "../style";
 
@@ -27,15 +28,15 @@ type UpdateProfileSchema = z.input<typeof updateProfileSchema>;
 export default function Register() {
   const {
     register,
-    control,
     handleSubmit,
-    watch,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm<UpdateProfileSchema>({
     resolver: zodResolver(updateProfileSchema),
   });
 
   const session = useSession();
+
+  console.log(session);
 
   async function handleUpdateProfile(data: UpdateProfileSchema) {}
 
@@ -51,6 +52,10 @@ export default function Register() {
       <ProfileBox as="form" onSubmit={handleSubmit(handleUpdateProfile)}>
         <label>
           <Text size="sm">Foto de perfil.</Text>
+          <Avatar
+            src={session.data?.user?.avatar_url}
+            alt={session.data?.user.name}
+          />
         </label>
 
         <label>

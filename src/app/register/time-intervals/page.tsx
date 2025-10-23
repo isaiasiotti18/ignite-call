@@ -26,6 +26,7 @@ import { convertTimeStringToMinutes } from "@/utils/src/utils/convert-time-strin
 import { zodResolver } from "@hookform/resolvers/zod";
 import { showToast } from "nextjs-toast-notify";
 import { api } from "@/lib/axios";
+import { useRouter } from "next/navigation";
 
 const timeIntervalsFormSchema = z.object({
   intervals: z
@@ -47,6 +48,8 @@ const timeIntervalsFormSchema = z.object({
 type TimeIntervalsFormSchema = z.input<typeof timeIntervalsFormSchema>;
 
 export default function Register() {
+  const router = useRouter();
+
   const {
     register,
     control,
@@ -110,6 +113,8 @@ export default function Register() {
     await api.post("/users/time-intervals", {
       intervals,
     });
+
+    await router.push("/register/update-profile");
   }
 
   return (

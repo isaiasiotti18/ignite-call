@@ -1,13 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Adapter } from "next-auth/adapters";
 import { prisma } from "../prisma";
-import { NextApiRequest, NextApiResponse } from "next";
 import { cookies } from "next/headers";
 
-export function PrismaAdapter(
-  req?: NextApiRequest,
-  res?: NextApiResponse
-): Adapter {
+export function PrismaAdapter(): Adapter {
   return {
     async createUser(user: any) {
       const cookieStore = await cookies();
