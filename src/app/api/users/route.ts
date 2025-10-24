@@ -41,5 +41,7 @@ export async function POST(req: NextRequest) {
     path: "/",
   });
 
-  return res.json(user, { status: 201 });
+  return new NextResponse(null, {
+    status: 201,
+  });
 }

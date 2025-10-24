@@ -18,6 +18,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormAnnotation, ProfileBox } from "./style";
 import { useSession } from "next-auth/react";
+import { api } from "@/lib/axios";
+import { useRouter } from "next/navigation";
 
 const updateProfileSchema = z.object({
   bio: z.string(),
@@ -25,7 +27,7 @@ const updateProfileSchema = z.object({
 
 type UpdateProfileSchema = z.input<typeof updateProfileSchema>;
 
-export default function Register() {
+export default function UpdateProfile() {
   const {
     register,
     handleSubmit,
@@ -35,10 +37,15 @@ export default function Register() {
   });
 
   const session = useSession();
+  const router = useRouter();
 
-  console.log(session);
+  async function handleUpdateProfile(data: UpdateProfileSchema) {
+    await api.put("/users/update-profile", {
+      bio: data.bio,
+    });
 
-  async function handleUpdateProfile(data: UpdateProfileSchema) {}
+    await router.push(`/schedule/${session.data?.user.username}`);
+  }
 
   return (
     <Container>

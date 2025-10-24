@@ -47,7 +47,7 @@ const timeIntervalsFormSchema = z.object({
 
 type TimeIntervalsFormSchema = z.input<typeof timeIntervalsFormSchema>;
 
-export default function Register() {
+export default function TimeIntervals() {
   const router = useRouter();
 
   const {

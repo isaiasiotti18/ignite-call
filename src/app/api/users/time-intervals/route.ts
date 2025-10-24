@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { buildNextAuthOptions } from "../../auth/[...nextauth]/route";
 import { NextRequest, NextResponse } from "next/server";
