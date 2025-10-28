@@ -8,7 +8,6 @@ import {
   CalendarTitle,
 } from "./style";
 import { getWeekDays } from "@/utils/get-week-days";
-import { th } from "zod/locales";
 
 export function Calendar() {
   const shortWeekDays = getWeekDays({ short: true });
@@ -40,21 +39,23 @@ export function Calendar() {
         </thead>
 
         <tbody>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td>
-            <CalendarDay>1</CalendarDay>
-          </td>
-          <td>
-            <CalendarDay>2</CalendarDay>
-          </td>
-          <td>
-            <CalendarDay>3</CalendarDay>
-          </td>
-          <td>
-            <CalendarDay>4</CalendarDay>
-          </td>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>
+              <CalendarDay>1</CalendarDay>
+            </td>
+            <td>
+              <CalendarDay>2</CalendarDay>
+            </td>
+            <td>
+              <CalendarDay>3</CalendarDay>
+            </td>
+            <td>
+              <CalendarDay>3</CalendarDay>
+            </td>
+          </tr>
         </tbody>
       </CalendarBody>
     </CalendarContainer>
