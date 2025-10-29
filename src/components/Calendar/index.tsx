@@ -8,22 +8,45 @@ import {
   CalendarTitle,
 } from "./style";
 import { getWeekDays } from "@/utils/get-week-days";
+import { useState } from "react";
+
+import { addMonths, format, startOfMonth, subMonths } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export function Calendar() {
+  const [currentDate, setCurrentDate] = useState(() =>
+    startOfMonth(new Date())
+  );
+
   const shortWeekDays = getWeekDays({ short: true });
+
+  function handlePreviousMonth() {
+    const previousMonthDate = subMonths(currentDate, 1);
+    setCurrentDate(previousMonthDate);
+  }
+
+  function handleNextMonth() {
+    const nextMonthDate = addMonths(currentDate, 1);
+    setCurrentDate(nextMonthDate);
+  }
+
+  // Locale aplicado corretamente aqui
+  const currentMonth = format(currentDate, "MMMM", { locale: ptBR });
+  const currentYear = format(currentDate, "yyyy", { locale: ptBR });
+
   return (
     <CalendarContainer>
       <CalendarHeader>
         <CalendarTitle>
-          Dezembro <span>2025</span>
+          {currentMonth} <span>{currentYear}</span>
         </CalendarTitle>
 
         <CalendarActions>
-          <button>
+          <button onClick={handlePreviousMonth} title="Previous Month">
             <ChevronLeft />
           </button>
 
-          <button>
+          <button onClick={handleNextMonth} title="Next Month">
             <ChevronRight />
           </button>
         </CalendarActions>

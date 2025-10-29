@@ -3,11 +3,8 @@ import { Roboto, Roboto_Mono } from "next/font/google";
 import { GlobalStyles } from "@/styles/global";
 import "./globals.css";
 import { GetCssText } from "@/utils/get-css-text-wrapper";
-import { SessionProvider } from "next-auth/react";
 import Head from "next/head";
 import { Providers } from "./providers";
-import { getServerSession } from "next-auth";
-import { buildNextAuthOptions } from "./api/auth/[...nextauth]/route";
 
 const robotoSans = Roboto({
   variable: "--font-roboto-sans",
