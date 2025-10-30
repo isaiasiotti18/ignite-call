@@ -8,9 +8,19 @@ import {
   CalendarTitle,
 } from "./style";
 import { getWeekDays } from "@/utils/get-week-days";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import { addMonths, format, startOfMonth, subMonths } from "date-fns";
+import {
+  addDays,
+  addMonths,
+  format,
+  getDay,
+  getDaysInMonth,
+  setDate,
+  startOfMonth,
+  subDays,
+  subMonths,
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export function Calendar() {
@@ -33,6 +43,41 @@ export function Calendar() {
   // Locale aplicado corretamente aqui
   const currentMonth = format(currentDate, "MMMM", { locale: ptBR });
   const currentYear = format(currentDate, "yyyy", { locale: ptBR });
+
+  const calendarWeeks = useMemo(() => {
+    const firstDay = startOfMonth(currentDate);
+    const daysInMonthArray = Array.from({
+      length: getDaysInMonth(currentDate),
+    }).map((_, index) => addDays(firstDay, index));
+
+    const firstWeekDay = currentDate.getDay();
+    const previousMonthFillArray = Array.from({
+      length: firstWeekDay,
+    })
+      .map((_, index) => {
+        return subDays(currentDate, index + 1);
+      })
+      .reverse();
+
+    const lastDayInCurrentMonth = setDate(
+      currentDate,
+      getDaysInMonth(currentDate)
+    );
+    const lastWeekDay = getDay(lastDayInCurrentMonth);
+    const nextMonthFillArray = Array.from({
+      length: 7 - (lastWeekDay + 1),
+    }).map((_, i) => {
+      return addDays(lastDayInCurrentMonth, i + 1);
+    });
+
+    return [
+      ...previousMonthFillArray,
+      ...daysInMonthArray,
+      ...nextMonthFillArray,
+    ];
+  }, [currentDate]);
+
+  console.log(calendarWeeks);
 
   return (
     <CalendarContainer>
