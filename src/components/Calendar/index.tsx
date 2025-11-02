@@ -13,9 +13,12 @@ import { useMemo, useState } from "react";
 import {
   addDays,
   addMonths,
+  endOfDay,
   format,
+  getDate,
   getDay,
   getDaysInMonth,
+  isBefore,
   setDate,
   startOfMonth,
   subDays,
@@ -23,7 +26,31 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-export function Calendar() {
+type CalendarDay = {
+  date: Date;
+  disabled: boolean;
+};
+
+type CalendarDays = CalendarDay[];
+
+interface CalendarWeek {
+  week: number;
+  days: CalendarDays;
+}
+
+type CalendarWeeks = CalendarWeek[];
+
+interface BlockedDates {
+  blockedWeekDays: number[];
+  blockedDates: number[];
+}
+
+interface CalendarProps {
+  selectedDate: Date | null;
+  onDateSelected: (date: Date) => void;
+}
+
+export function Calendar({ selectedDate, onDateSelected }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(() =>
     startOfMonth(new Date())
   );
@@ -43,6 +70,20 @@ export function Calendar() {
   // Locale aplicado corretamente aqui
   const currentMonth = format(currentDate, "MMMM", { locale: ptBR });
   const currentYear = format(currentDate, "yyyy", { locale: ptBR });
+
+  const { data: blockedDates } = useQuery<BlockedDates>(
+    ["blocked-dates", currentDate.get("year"), currentDate.get("month")],
+    async () => {
+      const response = await api.get(`/users/${username}/blocked-dates`, {
+        params: {
+          year: currentDate.get("year"),
+          month: currentDate.get("month") + 1,
+        },
+      });
+
+      return response.data;
+    }
+  );
 
   const calendarWeeks = useMemo(() => {
     const firstDay = startOfMonth(currentDate);
@@ -70,11 +111,41 @@ export function Calendar() {
       return addDays(lastDayInCurrentMonth, i + 1);
     });
 
-    return [
-      ...previousMonthFillArray,
-      ...daysInMonthArray,
-      ...nextMonthFillArray,
+    const calendarDays = [
+      ...previousMonthFillArray.map((date) => {
+        return { date, disabled: true };
+      }),
+      ...daysInMonthArray.map((date) => {
+        return {
+          date,
+          disabled:
+            isBefore(endOfDay(date), new Date()) ||
+            blockedDates.blockedWeekDays.includes(getDay(date)) ||
+            blockedDates.blockedDates.includes(getDate(date)),
+        };
+      }),
+      ...nextMonthFillArray.map((date) => {
+        return { date, disabled: true };
+      }),
     ];
+
+    const calendarWeeks = calendarDays.reduce<CalendarWeeks>(
+      (weeks, _, i, original) => {
+        const isNewWeek = i % 7 === 0;
+
+        if (isNewWeek) {
+          weeks.push({
+            week: i / 7 + 1,
+            days: original.slice(i, i + 7),
+          });
+        }
+
+        return weeks;
+      },
+      []
+    );
+
+    return calendarWeeks;
   }, [currentDate]);
 
   console.log(calendarWeeks);
@@ -107,23 +178,24 @@ export function Calendar() {
         </thead>
 
         <tbody>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td>
-              <CalendarDay>1</CalendarDay>
-            </td>
-            <td>
-              <CalendarDay>2</CalendarDay>
-            </td>
-            <td>
-              <CalendarDay>3</CalendarDay>
-            </td>
-            <td>
-              <CalendarDay>3</CalendarDay>
-            </td>
-          </tr>
+          {calendarWeeks.map(({ week, days }) => {
+            return (
+              <tr key={week}>
+                {days.map(({ date, disabled }) => {
+                  return (
+                    <td key={date.toISOString()}>
+                      <CalendarDay
+                        onClick={() => onDateSelected(date)}
+                        disabled={disabled}
+                      >
+                        {date.getDate()}
+                      </CalendarDay>
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
         </tbody>
       </CalendarBody>
     </CalendarContainer>

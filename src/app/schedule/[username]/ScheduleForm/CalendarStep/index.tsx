@@ -7,19 +7,29 @@ import {
   TimePickerList,
 } from "./style";
 import { useState } from "react";
-import dayjs from "dayjs";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export function CalendarStep() {
-  const isDateSelected = true;
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const isDateSelected = !!selectedDate;
+
+  const weekDay = selectedDate
+    ? format(new Date(selectedDate), "eeee", { locale: ptBR })
+    : null;
+
+  const describedDate = selectedDate
+    ? format(new Date(selectedDate), "dd 'de' MMMM", { locale: ptBR })
+    : null;
 
   return (
     <Container isTimePickerOpen={isDateSelected}>
-      <Calendar />
+      <Calendar selectedDate={selectedDate} onDateSelected={setSelectedDate} />
 
       {isDateSelected && (
         <TimePicker>
           <TimePickerHeader>
-            terça-feira <span>20 de setembro</span>
+            {weekDay} <span>{describedDate}</span>
           </TimePickerHeader>
 
           <TimePickerList>
