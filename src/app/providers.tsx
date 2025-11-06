@@ -1,11 +1,17 @@
 // providers.tsx
 "use client";
 import { SessionProvider } from "next-auth/react";
+import { queryClient } from "@/lib/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 
 interface ProvidersProps {
   children: React.ReactNode;
 }
 
 export function Providers({ children }: ProvidersProps) {
-  return <SessionProvider>{children}</SessionProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <SessionProvider>{children}</SessionProvider>
+    </QueryClientProvider>
+  );
 }

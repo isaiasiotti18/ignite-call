@@ -25,6 +25,9 @@ import {
   subMonths,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/axios";
+import { useParams, useSearchParams } from "next/navigation";
 
 type CalendarDay = {
   date: Date;
@@ -55,6 +58,9 @@ export function Calendar({ selectedDate, onDateSelected }: CalendarProps) {
     startOfMonth(new Date())
   );
 
+  const params = useParams<{ username: string }>();
+  const username = params.username;
+
   const shortWeekDays = getWeekDays({ short: true });
 
   function handlePreviousMonth() {
@@ -71,19 +77,19 @@ export function Calendar({ selectedDate, onDateSelected }: CalendarProps) {
   const currentMonth = format(currentDate, "MMMM", { locale: ptBR });
   const currentYear = format(currentDate, "yyyy", { locale: ptBR });
 
-  const { data: blockedDates } = useQuery<BlockedDates>(
-    ["blocked-dates", currentDate.get("year"), currentDate.get("month")],
-    async () => {
-      const response = await api.get(`/users/${username}/blocked-dates`, {
-        params: {
-          year: currentDate.get("year"),
-          month: currentDate.get("month") + 1,
-        },
-      });
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth(); // 0-based igual ao dayjs
 
-      return response.data;
-    }
-  );
+  const { data: blockedDates = { blockedWeekDays: [], blockedDates: [] } } =
+    useQuery({
+      queryKey: ["blocked-dates", year, month],
+      queryFn: async () => {
+        const response = await api.get(`/users/${username}/blocked-dates`, {
+          params: { year, month: month + 1 },
+        });
+        return response.data;
+      },
+    });
 
   const calendarWeeks = useMemo(() => {
     const firstDay = startOfMonth(currentDate);
