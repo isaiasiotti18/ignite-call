@@ -28,7 +28,6 @@ export function CalendarStep({ onSelectDateTime }: CalendarStepProps) {
 
   const params = useParams<{ username: string }>();
   const username = params.username;
-  console.log("username - Calendarstep", username);
 
   const weekDay = selectedDate
     ? format(new Date(selectedDate), "eeee", { locale: ptBR })
@@ -51,7 +50,6 @@ export function CalendarStep({ onSelectDateTime }: CalendarStepProps) {
         },
       });
 
-      console.log("data", response.data);
       return response.data;
     },
     enabled: !!selectedDate,

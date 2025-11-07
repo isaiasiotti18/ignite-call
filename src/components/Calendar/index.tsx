@@ -27,11 +27,11 @@ import {
 import { ptBR } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/axios";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 
 type CalendarDay = {
   date: Date;
-  disabled: boolean;
+  disabled?: boolean;
 };
 
 type CalendarDays = CalendarDay[];
@@ -80,16 +80,19 @@ export function Calendar({ selectedDate, onDateSelected }: CalendarProps) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth(); // 0-based igual ao dayjs
 
-  const { data: blockedDates = { blockedWeekDays: [], blockedDates: [] } } =
-    useQuery({
-      queryKey: ["blocked-dates", year, month],
-      queryFn: async () => {
-        const response = await api.get(`/users/${username}/blocked-dates`, {
-          params: { year, month: month + 1 },
-        });
-        return response.data;
-      },
-    });
+  const { data: blockedDates } = useQuery<BlockedDates>({
+    queryKey: ["blocked-dates", year, month],
+    queryFn: async () => {
+      const response = await api.get(`/users/${username}/blocked-dates`, {
+        params: {
+          year,
+          month: month + 1,
+        },
+      });
+      console.log(response.data);
+      return response.data;
+    },
+  });
 
   const calendarWeeks = useMemo(() => {
     const firstDay = startOfMonth(currentDate);
@@ -126,8 +129,8 @@ export function Calendar({ selectedDate, onDateSelected }: CalendarProps) {
           date,
           disabled:
             isBefore(endOfDay(date), new Date()) ||
-            blockedDates.blockedWeekDays.includes(getDay(date)) ||
-            blockedDates.blockedDates.includes(getDate(date)),
+            blockedDates?.blockedWeekDays?.includes(getDay(date)) ||
+            blockedDates?.blockedDates?.includes(getDate(date)),
         };
       }),
       ...nextMonthFillArray.map((date) => {
@@ -152,9 +155,7 @@ export function Calendar({ selectedDate, onDateSelected }: CalendarProps) {
     );
 
     return calendarWeeks;
-  }, [currentDate]);
-
-  console.log(calendarWeeks);
+  }, [currentDate, blockedDates]);
 
   return (
     <CalendarContainer>
