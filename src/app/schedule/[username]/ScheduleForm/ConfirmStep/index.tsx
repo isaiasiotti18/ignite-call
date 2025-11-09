@@ -4,6 +4,8 @@ import { Calendar, Clock } from "lucide-react";
 import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const confirmFormSchema = z.object({
   name: z
@@ -22,7 +24,15 @@ const confirmFormSchema = z.object({
 
 type ConfirmFormSchema = z.infer<typeof confirmFormSchema>;
 
-export function ConfirmStep() {
+interface ConfirmStepProps {
+  schedulingDate: Date;
+  onCancelConfirmation: () => void;
+}
+
+export function ConfirmStep({
+  schedulingDate,
+  onCancelConfirmation,
+}: ConfirmStepProps) {
   const {
     register,
     handleSubmit,
@@ -30,19 +40,29 @@ export function ConfirmStep() {
   } = useForm<ConfirmFormSchema>({
     resolver: zodResolver(confirmFormSchema),
   });
+
   function handleConfirmScheduling(data: ConfirmFormSchema) {
     console.log("Form");
   }
+
+  const describedDate = format(schedulingDate, "dd 'de' MMMM 'de' yyyy", {
+    locale: ptBR,
+  });
+
+  const describedTime = format(schedulingDate, "HH:mm'h'", {
+    locale: ptBR,
+  });
+
   return (
-    <ConfirmForm as="form" onSubmit={handleConfirmScheduling}>
+    <ConfirmForm as="form" onSubmit={handleSubmit(handleConfirmScheduling)}>
       <FormHeader>
         <Text>
           <Calendar />
-          22 de setembro de 2025
+          {describedDate}
         </Text>
         <Text>
           <Clock />
-          18:00
+          {describedTime}
         </Text>
       </FormHeader>
 
@@ -73,7 +93,7 @@ export function ConfirmStep() {
       </label>
 
       <FormActions>
-        <Button type="button" variant="tertiary">
+        <Button type="button" variant="tertiary" onClick={onCancelConfirmation}>
           Cancelar
         </Button>
 

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { endOfDay, isBefore } from "date-fns";
+import { endOfDay, isBefore, setHours } from "date-fns";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -66,10 +66,10 @@ export async function GET(
   );
 
   const startDate = new Date(referenceDate);
-  startDate.setHours(startHour, 0, 0, 0);
+  startDate.setUTCHours(startHour, 0, 0, 0);
 
   const endDate = new Date(referenceDate);
-  endDate.setHours(endHour, 0, 0, 0);
+  endDate.setUTCHours(endHour, 0, 0, 0);
 
   const blockedTimes = await prisma.scheduling.findMany({
     select: {
@@ -85,9 +85,21 @@ export async function GET(
   });
 
   const availableTimes = possibleTimes.filter((time) => {
-    return !blockedTimes.some(
-      (blockedTime) => blockedTime.date.getHours() === time
+    const isTimeBlocked = blockedTimes.some(
+      (blockedTime) => blockedTime.date.getUTCHours() === time
     );
+
+    // cria uma nova data com a hora ajustada
+    const timeWithHour = setHours(referenceDate, time);
+
+    const isTimeInPast = isBefore(timeWithHour, new Date());
+
+    return !isTimeBlocked && !isTimeInPast;
+  });
+
+  console.log("possibleTimes & availableTimes: ", {
+    possibleTimes,
+    availableTimes,
   });
 
   return NextResponse.json({ possibleTimes, availableTimes });

@@ -48,11 +48,11 @@ export async function GET(
     );
   });
 
-  const blockedDatesRaw = await prisma.$queryRaw`
+  const blockedDatesRaw: Array<{ date: number }> = await prisma.$queryRaw`
     SELECT
       EXTRACT(DAY FROM S.date) AS date,
       COUNT(S.date) AS amount,
-      ((UTI.time_start_in_minutes - UTI.time_end_in_minutes) / 60) AS size
+      ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60) AS size
     FROM schedulings S
 
     LEFT JOIN user_time_intervals UTI
@@ -61,8 +61,14 @@ export async function GET(
     WHERE S.user_id = ${user.id}
       AND DATE_FORMAT(S.date, "%Y-%m") = ${`${year}-${month}`}
 
-    GROUP BY EXTRACT(DAY FROM S.date)
+    GROUP BY EXTRACT(DAY FROM S.date),
+      ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60)
+
+    HAVING amount >= size
+      OR size = 0
   `;
 
-  return NextResponse.json({ blockedWeekDays, blockedDatesRaw });
+  const blockedDates = blockedDatesRaw.map((item) => item.date);
+
+  return NextResponse.json({ blockedWeekDays, blockedDates });
 }
