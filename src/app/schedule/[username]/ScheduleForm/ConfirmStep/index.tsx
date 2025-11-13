@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useParams, useRouter } from "next/navigation";
+import { api } from "@/lib/axios";
 
 const confirmFormSchema = z.object({
   name: z
@@ -15,7 +17,7 @@ const confirmFormSchema = z.object({
   email: z
     .email("Digite um email valido")
     .nonempty("Campo e-mail não pode estar vazio."),
-  observation: z
+  observations: z
     .string()
     .min(10, "Observações minimo 10 caracteres")
     .max(200, "Máximo de 200 caracteres")
@@ -41,8 +43,21 @@ export function ConfirmStep({
     resolver: zodResolver(confirmFormSchema),
   });
 
-  function handleConfirmScheduling(data: ConfirmFormSchema) {
-    console.log("Form");
+  const router = useRouter();
+
+  const params = useParams<{ username: string }>();
+  const username = params.username;
+
+  async function handleConfirmScheduling(data: ConfirmFormSchema) {
+    const { email, name, observations } = data;
+    await api.post(`/users/${username}/schedule`, {
+      name,
+      email,
+      observations,
+      date: schedulingDate,
+    });
+
+    onCancelConfirmation();
   }
 
   const describedDate = format(schedulingDate, "dd 'de' MMMM 'de' yyyy", {
@@ -85,10 +100,10 @@ export function ConfirmStep({
         <Text size="sm">Observações</Text>
         <TextArea
           placeholder="Seu nome completo"
-          {...register("observation")}
+          {...register("observations")}
         />
-        {errors.observation && (
-          <FormError>{errors.observation.message}</FormError>
+        {errors.observations && (
+          <FormError>{errors.observations.message}</FormError>
         )}
       </label>
 

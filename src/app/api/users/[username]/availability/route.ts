@@ -51,6 +51,13 @@ export async function GET(
     },
   });
 
+  console.log({
+    date,
+    localDay: referenceDate.getDay(),
+    utcDay: referenceDate.getUTCDay(),
+    referenceDate,
+  });
+
   if (!userAvailability)
     return NextResponse.json({ possibleTimes: [], availableTimes: [] });
 
@@ -90,7 +97,8 @@ export async function GET(
     );
 
     // cria uma nova data com a hora ajustada
-    const timeWithHour = setHours(referenceDate, time);
+    const timeWithHour = new Date(referenceDate);
+    timeWithHour.setUTCHours(time, 0, 0, 0);
 
     const isTimeInPast = isBefore(timeWithHour, new Date());
 
